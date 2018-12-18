@@ -3,7 +3,7 @@ Identifying the type of the multicellular structure based on the connectivity gr
 
 ### Format of the output data
 
-The experiment data is saved in a json file under the same name as the CompuCell3D project for easier identification. The data follows the format:
+The experimental data is saved in a json and following the format:
 
 ```python
 [{
@@ -39,3 +39,32 @@ The experiment data is saved in a json file under the same name as the CompuCell
 ```
 
 The data is a list of dictionaries, one for each saved Monte Carlo step. The dictionary containes two entries, a number - the experiment time, and a dictionary containing the type, position and the neigbors for each cell.
+
+#### Python code to be placed in step
+```python
+import json
+
+...
+
+# Save simulation data
+if mcs % RESOL == 0:
+    cells = {}
+
+    # Extract the connectivity graph between cells
+    for cell in self.cellList:
+        cells[cell.id] = {
+            "type": cell.type,
+            "pos": [cell.xCOM, cell.yCOM, cell.zCOM],
+            "neighbors": {n.id:s for n, s in self.getCellNeighborDataList(cell) if n}
+        }
+
+    GLOBAL.append({"time": mcs, "cells": cells})
+
+    # Save partial results in case it crashes later
+    try:
+        f, _ = self.openFileInSimulationOutputDirectory("results.json", "w")
+        json.dump(f, GLOBAL)
+        f.close()
+    except:
+        print("Could not write the results file")
+```
